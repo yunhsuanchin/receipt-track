@@ -7,3 +7,5 @@ app.listen(PORT, () => {
   db.sequelize.sync()
   console.log(`App is listening on port ${PORT}`)
 })
+
+require('./routes')(app)
