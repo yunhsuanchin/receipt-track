@@ -39,7 +39,7 @@ const userController = {
     try {
       const { account, password } = req.body
       const [user] = await sequelize.query(`
-      SELECT * FROM users WHERE account = :account
+      SELECT id, name, account, password FROM users WHERE account = :account
       `, {
         type: sequelize.QueryTypes.SELECT,
         replacements: { account }
@@ -52,11 +52,12 @@ const userController = {
         })
       }
 
+      delete user.password
       return res.status(400).json({
         status: 'success',
         message: 'Successfully sign in.',
         token: jwt.sign({ id: user.id }, process.env.JWT_SECRET),
-        user: { id: user.id, name: user.name, account: user.account }
+        user
       })
     } catch (error) {
       console.log(error)
