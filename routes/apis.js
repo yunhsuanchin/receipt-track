@@ -10,6 +10,7 @@ const authenticator = (req, res, next) => {
     if (!user) {
       return res.status(401).json({ status: 'error', message: 'permission denied.' })
     }
+    req.user = user
     return next()
   })(req, res, next)
 }
