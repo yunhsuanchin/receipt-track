@@ -3,7 +3,22 @@ const { sequelize } = require('../models')
 const receiptController = {
   getReceipts: async (req, res) => {
     try {
-      console.log('receipt', 'user', req.user)
+      const receipts = await sequelize.query(`
+      SELECT * FROM receipts AS r
+      LEFT JOIN (SELECT id, name AS merchant_name FROM merchants) AS m ON m.id = r.MerchantId
+      LEFT JOIN (SELECT id, MerchantId, name AS product_name FROM products) AS p ON m.id = p.MerchantId
+      LEFT JOIN
+      (SELECT id, ProductId, price AS receipt_products_price, quantity AS receipt_products_quantity FROM receipt_products)
+      AS rp ON p.id = rp.ProductId
+      WHERE r.UserId = :id
+      `, {
+        type: sequelize.QueryTypes.SELECT,
+        replacements: { id: req.user.id }
+      })
+      return res.status(400).json({
+        status: 'success',
+        receipts
+      })
     } catch (error) {
       console.log(error)
     }
