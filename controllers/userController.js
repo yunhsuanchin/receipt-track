@@ -5,19 +5,7 @@ const { sequelize } = require('../models')
 const userController = {
   register: async (req, res) => {
     try {
-      const { name, account, password, checkPassword } = req.body
-      if (!name || !account || !password) {
-        return res.status(400).json({
-          status: 'error',
-          message: "Required fields didn't exist."
-        })
-      }
-      if (password !== checkPassword) {
-        return res.status(400).json({
-          status: 'error',
-          message: "Passwords didn't match."
-        })
-      }
+      const { name, account, password } = req.body
 
       const hashPassword = await bcrypt.hashSync(password, bcrypt.genSaltSync(10))
       await sequelize.query(`

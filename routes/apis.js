@@ -4,6 +4,7 @@ const receiptController = require('../controllers/receiptController')
 const userController = require('../controllers/userController')
 const passport = require('../config/passport')
 const { sequelize } = require('../models')
+const { registerRules, signInRules } = require('../middleware/validator')
 const multer = require('multer')
 const upload = multer({ dest: 'temp/' })
 
@@ -53,8 +54,8 @@ router.put('/receipts/:receipt_id/tagging', authenticator, permissionCheck, rece
 router.delete('/receipts/:receipt_id/tagging', authenticator, permissionCheck, receiptController.deleteReceiptTagging)
 
 // userController
-router.post('/register', userController.register)
-router.post('/signin', userController.signIn)
+router.post('/register', registerRules, userController.register)
+router.post('/signin', signInRules, userController.signIn)
 router.post('/signout', authenticator, userController.signOut)
 
 module.exports = router
