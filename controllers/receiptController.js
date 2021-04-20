@@ -5,13 +5,15 @@ const receiptController = {
   getReceipts: async (req, res) => {
     try {
       const receipts = await sequelize.query(`
-      SELECT * FROM receipts AS r
-      LEFT JOIN (SELECT id, name AS merchant_name FROM merchants) AS m ON m.id = r.MerchantId
-      LEFT JOIN (SELECT id, MerchantId, name AS product_name FROM products) AS p ON m.id = p.MerchantId
-      LEFT JOIN
-      (SELECT id, ProductId, price AS receipt_products_price, quantity AS receipt_products_quantity FROM receipt_products)
-      AS rp ON p.id = rp.ProductId
-      WHERE r.UserId = :id
+      SELECT receipts.*, merchants.name AS merchant_name, receipt_products.price AS product_price, receipt_products.quantity AS product_quantity, products.name AS product_name
+      FROM receipts
+      JOIN merchants
+      ON receipts.MerchantId = merchants.id
+      JOIN receipt_products
+      ON receipt_products.ReceiptId = receipts.id
+      JOIN products
+      ON receipt_products.ProductId = products.id
+      WHERE receipts.UserId = :id
       `, {
         type: sequelize.QueryTypes.SELECT,
         replacements: { id: req.user.id }
