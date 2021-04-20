@@ -4,6 +4,8 @@ const receiptController = require('../controllers/receiptController')
 const userController = require('../controllers/userController')
 const passport = require('../config/passport')
 const { sequelize } = require('../models')
+const multer = require('multer')
+const upload = multer({ dest: 'temp/' })
 
 const authenticator = (req, res, next) => {
   passport.authenticate('jwt', { session: false }, (err, user, info) => {
@@ -41,7 +43,7 @@ const permissionCheck = async (req, res, next) => {
 
 // receiptController
 router.get('/receipts', authenticator, receiptController.getReceipts)
-router.post('/receipts', authenticator, receiptController.addReceipt)
+router.post('/receipts', authenticator, upload.single('txt'), receiptController.addReceipt)
 router.get('/receipts/:tagging', authenticator, receiptController.getTagging)
 router.get('/receipts/:receipt_id/tagging', authenticator, permissionCheck, receiptController.getReceiptTagging)
 router.post('/receipts/:receipt_id/tagging', authenticator, permissionCheck, receiptController.addReceiptTagging)

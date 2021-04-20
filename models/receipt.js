@@ -19,11 +19,11 @@ module.exports = (sequelize, DataTypes) => {
   Receipt.init({
     receipt_id: DataTypes.INTEGER,
     date: DataTypes.DATE,
-    amount: DataTypes.INTEGER,
+    amount: DataTypes.FLOAT,
     payment_method: DataTypes.STRING,
     tagging: DataTypes.STRING,
     UserId: DataTypes.INTEGER,
-    MerchantId: DataTypes.STRING
+    MerchantId: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Receipt',
