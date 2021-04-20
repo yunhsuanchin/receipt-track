@@ -55,6 +55,6 @@ router.delete('/receipts/:receipt_id/tagging', authenticator, permissionCheck, r
 // userController
 router.post('/register', userController.register)
 router.post('/signin', userController.signIn)
-router.post('/signout', authenticator, userController.signout)
+router.post('/signout', authenticator, userController.signOut)
 
 module.exports = router
