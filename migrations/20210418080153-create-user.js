@@ -15,13 +15,13 @@ module.exports = {
       account: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true,
+        unique: true
+      },
+      password: {
+        type: Sequelize.STRING,
         validate: {
           len: [5, 10]
         }
-      },
-      password: {
-        type: Sequelize.STRING
       },
       createdAt: {
         allowNull: false,
