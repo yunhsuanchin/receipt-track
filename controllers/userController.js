@@ -22,10 +22,11 @@ const userController = {
       const hashPassword = await bcrypt.hashSync(password, bcrypt.genSaltSync(10))
       await sequelize.query(`
       INSERT INTO users (name, account, password, createdAt, updatedAt) 
-      VALUES(?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      SELECT :name, :account, :password, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+      FROM DUAL WHERE NOT EXISTS (SELECT account FROM users WHERE account = :account)
       `, {
         type: sequelize.QueryTypes.INSERT,
-        replacements: [name, account, hashPassword]
+        replacements: { name, account, password: hashPassword }
       })
       return res.status(200).json({
         status: 'success',
