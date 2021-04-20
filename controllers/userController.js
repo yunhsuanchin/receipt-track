@@ -53,7 +53,7 @@ const userController = {
       }
 
       delete user.password
-      return res.status(400).json({
+      return res.status(200).json({
         status: 'success',
         message: 'Successfully sign in.',
         token: jwt.sign({ id: user.id }, process.env.JWT_SECRET),

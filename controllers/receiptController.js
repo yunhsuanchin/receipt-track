@@ -16,7 +16,7 @@ const receiptController = {
         type: sequelize.QueryTypes.SELECT,
         replacements: { id: req.user.id }
       })
-      return res.status(400).json({
+      return res.status(200).json({
         status: 'success',
         receipts
       })
@@ -32,23 +32,30 @@ const receiptController = {
       const receipt = await receiptReader(file)
       const products = await productReader(file)
 
-      const [isMerchantExists] = await sequelize.query(`
-      SELECT name, telephone FROM merchants
-      WHERE name = :name AND telephone = :telephone
+      const [isReceiptExists] = await sequelize.query(`
+      SELECT receipt_id FROM receipts WHERE receipt_id = :id
       `, {
         type: sequelize.QueryTypes.SELECT,
-        replacements: { name: merchant.name, telephone: merchant.telephone }
+        replacements: { id: receipt.receipt_id }
       })
-      if (!isMerchantExists) {
-        await sequelize.query(`
-        INSERT INTO merchants (name, telephone, createdAt, updatedAt)
-        VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        `, {
-          type: sequelize.QueryTypes.INSERT,
-          replacements: Object.values(merchant)
+
+      if (isReceiptExists) {
+        return res.json({
+          status: 'error',
+          message: 'This receipt has already been recorded.'
         })
       }
 
+      // insert into merchants
+      await sequelize.query(`
+      INSERT INTO merchants (name, telephone, createdAt, updatedAt)
+      SELECT :name, :telephone, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+      FROM DUAL WHERE NOT EXISTS (SELECT telephone FROM merchants WHERE telephone = :telephone)
+      `, {
+        type: sequelize.QueryTypes.INSERT,
+        replacements: { name: merchant.name, telephone: merchant.telephone }
+      })
+      // insert into products
       const productHandler = (array) => {
         return new Promise((resolve, reject) => {
           if (array.length) {
@@ -57,28 +64,28 @@ const receiptController = {
               resolve(
                 sequelize.query(`
                 INSERT INTO products (name, price, MerchantId, createdAt, updatedAt)
-                VALUES (:name, :price, (SELECT id FROM merchants WHERE name = :merchantName), CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+                SELECT :name, :price, (SELECT id FROM merchants WHERE name = :merchantName), CURRENT_TIMESTAMP,       
+                CURRENT_TIMESTAMP
+                FROM DUAL WHERE NOT EXISTS (SELECT name FROM products WHERE name = :name)
                 `, {
                   type: sequelize.QueryTypes.INSERT,
-                  replacements: { name: item.name, price: parseFloat(item.price), merchantName: merchant.name }
+                  replacements: { name: item.name, price: parseFloat(item.price), merchantName: merchant.name, merchantId: merchant.id }
                 })
               )
             })
           } else {
-            console.log('err')
             return reject
           }
         })
       }
 
       await productHandler(products)
+        .catch(error => console.log(error))
 
-      console.log('receipt', receipt)
       // insert into receipts
       await sequelize.query(`
       INSERT INTO receipts (receipt_id, date, amount, payment_method, tagging, UserId, MerchantId, createdAt, updatedAt)
-      VALUES (:receiptId, :date, :amount, :paymentMethod, :tagging, 
-        (SELECT id FROM users WHERE id = :userId), 
+      VALUES (:receiptId, :date, :amount, :paymentMethod, :tagging, (SELECT id FROM users WHERE id = :userId), 
         (SELECT id FROM merchants WHERE name = :merchantName),
         CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
       `, {
@@ -88,7 +95,7 @@ const receiptController = {
           date: receipt.date,
           amount: receipt.amount,
           paymentMethod: receipt.payment_method,
-          tagging: tagging ? 'tagging' : null,
+          tagging,
           userId: req.user.id,
           merchantName: merchant.name
         }
@@ -119,6 +126,10 @@ const receiptController = {
       }
 
       await rProductHandler(products)
+        .catch(error => console.log(error))
+      return res.status(200).json({
+        status: 'success'
+      })
     } catch (error) {
       console.log(error)
     }
@@ -138,7 +149,7 @@ const receiptController = {
         type: sequelize.QueryTypes.SELECT,
         replacements: { tagging, id: req.user.id }
       })
-      return res.status(400).json({
+      return res.status(200).json({
         status: 'success',
         receipts
       })
@@ -156,7 +167,7 @@ const receiptController = {
         type: sequelize.QueryTypes.SELECT,
         replacements: { id }
       })
-      return res.status(400).json({
+      return res.status(200).json({
         status: 'success',
         ...tagging
       })
@@ -175,7 +186,7 @@ const receiptController = {
         type: sequelize.QueryTypes.UPDATE,
         replacements: { id, tagging }
       })
-      return res.status(400).json({
+      return res.status(200).json({
         status: 'success'
       })
     } catch (error) {
@@ -193,7 +204,7 @@ const receiptController = {
         type: sequelize.QueryTypes.UPDATE,
         replacements: { id, tagging }
       })
-      return res.status(400).json({
+      return res.status(200).json({
         status: 'success'
       })
     } catch (error) {
@@ -210,7 +221,7 @@ const receiptController = {
         type: sequelize.QueryTypes.UPDATE,
         replacements: { id }
       })
-      return res.status(400).json({
+      return res.status(200).json({
         status: 'success'
       })
     } catch (error) {
