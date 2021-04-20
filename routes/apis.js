@@ -13,7 +13,9 @@ const authenticator = (req, res, next) => {
     if (!user) {
       return res.status(401).json({ status: 'error', message: 'permission denied.' })
     }
+    const token = req.header('Authorization').replace('Bearer ', '')
     req.user = user
+    req.user.token = token
     return next()
   })(req, res, next)
 }
@@ -53,5 +55,6 @@ router.delete('/receipts/:receipt_id/tagging', authenticator, permissionCheck, r
 // userController
 router.post('/register', userController.register)
 router.post('/signin', userController.signIn)
+router.post('/signout', authenticator, userController.signout)
 
 module.exports = router

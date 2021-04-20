@@ -63,6 +63,16 @@ const userController = {
     } catch (error) {
       console.log(error)
     }
+  },
+  signout: async (req, res) => {
+    try {
+      delete req.user.token
+      return res.status(200).json({
+        status: 'success'
+      })
+    } catch (error) {
+      console.log(error)
+    }
   }
 }
 
